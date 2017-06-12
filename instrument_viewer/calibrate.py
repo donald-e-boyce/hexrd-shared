@@ -192,10 +192,8 @@ class InstrumentViewer(object):
             self.slider_delta /= 1.5
             self.on_change_panel(self._active_panel_id)
         elif event.key in 'p':
-            # show polar view of rings
-            self.polar_mode = not self.polar_mode
-            #self._axes.clear()
-            #self.image = None
+            # toggle polar mode for viewing rings
+            self.toggle_polar()
         elif event.key in 'qQ':
             print "quitting"
             plt.close('all')
@@ -210,6 +208,13 @@ class InstrumentViewer(object):
         panel = self.instr._detectors[id]
         self._make_sliders(panel)
         self.update(0)
+
+    def toggle_polar(self):
+        self.polar_mode = not self.polar_mode
+        self.clear_rings()
+        #self._axes.clear()
+        #self.image = None
+
 
     def reset_panels(self):
         # in active_panel_mode, only reset active panel; otherwise reset all
@@ -259,7 +264,7 @@ class InstrumentViewer(object):
         else:
             self._axes.set_title("Instrument")
             self.plot_dplane()
-            #self.addrings()
+            self.addrings()
 
         # # colorbar
         # # cax = ax.imshow(np.log(1+ self._ims[k]))
@@ -288,7 +293,7 @@ class InstrumentViewer(object):
 
     def clear_rings(self):
         for r in self.ring_plots:
-            del r
+            r.remove()
 
     def plot_dplane(self, warped=None):
         dpanel = self.dpanel
