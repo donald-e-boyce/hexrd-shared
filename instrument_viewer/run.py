@@ -28,7 +28,10 @@ if __name__ == '__main__':
     #
     #  Run viewer
     #
-    print sys.argv
+    if len(sys.argv) < 4:
+        print "*** needs three args, got ", len(sys.argv) - 1
+        print "usage: run <instrument [yml]> <images [yml]> <material [cpl]>"
+        sys.exit()
     instr = load_instrument(sys.argv[1])
     ims = load_images(sys.argv[2])
     pdata = load_pdata(sys.argv[3])

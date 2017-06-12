@@ -32,8 +32,10 @@ class InstrumentViewer(object):
         self._cax = None
         self._active_panel_id = None
         self.active_panel_mode = False
+        self.polar_mode = False
         self.image = None
         self.have_rings = False
+        self.ring_plots = []
         self.slider_delta = 10.0
         self.set_interactors()
         self.show_image()
@@ -191,7 +193,9 @@ class InstrumentViewer(object):
             self.on_change_panel(self._active_panel_id)
         elif event.key in 'p':
             # show polar view of rings
-            self.show_polar()
+            self.polar_mode = not self.polar_mode
+            #self._axes.clear()
+            #self.image = None
         elif event.key in 'qQ':
             print "quitting"
             plt.close('all')
@@ -240,20 +244,22 @@ class InstrumentViewer(object):
 
         self.show_image()
 
-    def show_polar(self):
+    def draw_polar(self):
         """show polar view of rings"""
         pv = polar_view(self.planeData, self.instr)
         wimg = pv.warp_image(self.image_dict)
         self._axes.set_title("Instrument")
         self.plot_dplane(warped=wimg)
-        plt.draw()
-
+        self._axes.axis('image')
 
     def show_image(self):
         # self._axes.clear()
-        self._axes.set_title("Instrument")
-        self.plot_dplane()
-        self.addrings()
+        if self.polar_mode:
+            self.draw_polar()
+        else:
+            self._axes.set_title("Instrument")
+            self.plot_dplane()
+            #self.addrings()
 
         # # colorbar
         # # cax = ax.imshow(np.log(1+ self._ims[k]))
@@ -276,8 +282,13 @@ class InstrumentViewer(object):
                 self.ring_data.append(dp.cartToPixel(ring))
             self.have_rings = True
 
+            self.ring_plots = []
             for pr in self.ring_data:
-                self._axes.plot(pr[:, 1], pr[:, 0], 'c.', ms=4)
+                self.ring_plots += self._axes.plot(pr[:, 1], pr[:, 0], 'c.', ms=4)
+
+    def clear_rings(self):
+        for r in self.ring_plots:
+            del r
 
     def plot_dplane(self, warped=None):
         dpanel = self.dpanel
