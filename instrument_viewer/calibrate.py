@@ -212,9 +212,6 @@ class InstrumentViewer(object):
     def toggle_polar(self):
         self.polar_mode = not self.polar_mode
         self.clear_rings()
-        #self._axes.clear()
-        #self.image = None
-
 
     def reset_panels(self):
         # in active_panel_mode, only reset active panel; otherwise reset all
@@ -264,7 +261,7 @@ class InstrumentViewer(object):
         else:
             self._axes.set_title("Instrument")
             self.plot_dplane()
-            self.addrings()
+        self.addrings()
 
         # # colorbar
         # # cax = ax.imshow(np.log(1+ self._ims[k]))
@@ -277,23 +274,38 @@ class InstrumentViewer(object):
         plt.draw()
 
     def addrings(self):
+        self.ring_data = []
         if not self.have_rings:
+            print "**** plotting rings ****"
             # generate and save rings
             dp = self.dpanel
             ring_angs, ring_xys = dp.make_powder_rings(
                 self.planeData, delta_eta=1)
-            self.ring_data = []
-            for ring in ring_xys:
-                self.ring_data.append(dp.cartToPixel(ring))
+            if self.polar_mode:
+                colorspec = 'c-'
+                pv = polar_view(self.planeData, self.instr)
+                ringtth = [a[0,0] for a in ring_angs]
+                rings2plot = []
+                for tth in ringtth:
+                    px = pv.tth_to_pixel(tth)
+                    print "ring: ", tth, np.degrees(tth), px, pv.neta
+                    self.ring_data.append(np.array([[0, px], [pv.neta, px]]))
+                    print [[0, px], [pv.neta, px]]
+
+            else:
+                colorspec = 'c.'
+                for ring in ring_xys:
+                    self.ring_data.append(dp.cartToPixel(ring))
             self.have_rings = True
 
             self.ring_plots = []
             for pr in self.ring_data:
-                self.ring_plots += self._axes.plot(pr[:, 1], pr[:, 0], 'c.', ms=4)
+                self.ring_plots += self._axes.plot(pr[:, 1], pr[:, 0], colorspec, ms=4)
 
     def clear_rings(self):
         for r in self.ring_plots:
             r.remove()
+        self.have_rings = False
 
     def plot_dplane(self, warped=None):
         dpanel = self.dpanel

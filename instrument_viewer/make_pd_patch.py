@@ -108,8 +108,11 @@ class generate_tth_eta(object):
         angpts = self.angular_grid
         dummy_ome = np.zeros((self.ntth*self.neta))
 
+        lcount = 0
         wimg = np.zeros(self.shape)
         for detector_id in self.detectors:
+            #lcount +=1
+            #if lcount > 4: break
             print "detector: ", detector_id, image_dict[detector_id].shape
             panel = self.detectors[detector_id]
 
@@ -133,3 +136,7 @@ class generate_tth_eta(object):
                 xypts, image_dict[detector_id],
                 pad_with_nans=False).reshape(self.neta, self.ntth)
         return wimg
+
+    def tth_to_pixel(self, tth):
+        """convert two-theta value to pixel value (float) along two-theta axis"""
+        return np.degrees(tth - self.tth_min)/self.tth_pixel_size
