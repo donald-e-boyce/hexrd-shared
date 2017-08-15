@@ -6,7 +6,7 @@ import numpy as np
 
 from hexrd import imageseries
 from hexrd import instrument
-from calibrate import InstrumentViewer as IView
+from view_multipanel import InstrumentViewer as IView
 
 # plane data
 def load_pdata(cpkl):

@@ -135,6 +135,7 @@ class generate_tth_eta(object):
             wimg += panel.interpolate_bilinear(
                 xypts, image_dict[detector_id],
                 pad_with_nans=False).reshape(self.neta, self.ntth)
+            #print.wimg()
         return wimg
 
     def tth_to_pixel(self, tth):

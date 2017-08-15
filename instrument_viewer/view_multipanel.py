@@ -354,14 +354,17 @@ class InstrumentViewer(object):
             img = equalize_adapthist(warped, clip_limit=0.05, nbins=2**16)
         else:
             img = warped
+        print "image max/min: ", np.amax(img), np.amin(img)
 
+        mycmap = plt.cm.plasma
         if self.image is None:
             self.image = self._axes.imshow(
-                    img, cmap=plt.cm.bone,
+                    img, cmap=mycmap,
                     vmax=None,
                     interpolation="none")
         else:
             self.image.set_data(img)
+            self.image.set_clim(vmax=np.amax(img))
             self._figure.canvas.draw()
         self._axes.format_coord = self.format_coord
 
