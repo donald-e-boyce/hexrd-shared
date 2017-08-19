@@ -6,7 +6,7 @@ from matplotlib.widgets import Slider, Button, RadioButtons
 
 from hexrd.gridutil import cellIndices
 from hexrd import imageseries
-from make_pd_patch import PolarView
+from polarview import PolarView
 
 from skimage import io
 from skimage import transform as tf
