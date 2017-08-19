@@ -9,7 +9,7 @@ class generate_tth_eta(object):
     """
     def __init__(self, plane_data, instrument,
                  eta_min=0., eta_max=360.,
-                 pixel_size=(0.05, 0.25)):
+                 pixel_size=(0.005, 0.25)):
         # tth stuff
         tth_ranges = plane_data.getTThRanges()
         self._tth_min = np.min(tth_ranges)
@@ -111,9 +111,6 @@ class generate_tth_eta(object):
         lcount = 0
         wimg = np.zeros(self.shape)
         for detector_id in self.detectors:
-            #lcount +=1
-            #if lcount > 4: break
-            print "detector: ", detector_id, image_dict[detector_id].shape
             panel = self.detectors[detector_id]
 
             gpts = anglesToGVec(
@@ -135,7 +132,7 @@ class generate_tth_eta(object):
             wimg += panel.interpolate_bilinear(
                 xypts, image_dict[detector_id],
                 pad_with_nans=False).reshape(self.neta, self.ntth)
-            #print.wimg()
+
         return wimg
 
     def tth_to_pixel(self, tth):

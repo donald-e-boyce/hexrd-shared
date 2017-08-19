@@ -187,14 +187,17 @@ class InstrumentViewer(object):
             self.instr.write_config(self.instrument_output)
         elif event.key in '+=':
             # increase slider delta
+            print "increasing slider delta"
             self.slider_delta *= 1.5
             self.on_change_panel(self._active_panel_id)
         elif event.key in '-_':
+            print "decreasing slider delta"
             # decrease slider delta
             self.slider_delta /= 1.5
             self.on_change_panel(self._active_panel_id)
-        elif event.key in 'p':
+        elif event.key in 'm':
             # toggle polar mode for viewing rings
+            print "switching image mode"
             self.toggle_polar()
         elif event.key in 'qQ':
             print "quitting"
@@ -279,7 +282,6 @@ class InstrumentViewer(object):
     def addrings(self):
         self.ring_data = []
         if not self.have_rings:
-            print "**** plotting rings ****"
             # generate and save rings
             dp = self.dpanel
             ring_angs, ring_xys = dp.make_powder_rings(
@@ -291,9 +293,8 @@ class InstrumentViewer(object):
                 rings2plot = []
                 for tth in ringtth:
                     px = pv.tth_to_pixel(tth)
-                    print "ring: ", tth, np.degrees(tth), px, pv.neta
-                    self.ring_data.append(np.array([[0, px], [pv.neta, px]]))
-                    print [[0, px], [pv.neta, px]]
+                    ext = pv.neta
+                    self.ring_data.append(np.array([[0, px], [ext, px]]))
 
             else:
                 colorspec = 'c.'
@@ -354,7 +355,8 @@ class InstrumentViewer(object):
             img = equalize_adapthist(warped, clip_limit=0.05, nbins=2**16)
         else:
             img = warped
-        print "image max/min: ", np.amax(img), np.amin(img)
+            #img = equalize_adapthist(warped/np.amax(warped), clip_limit=0.5, nbins=2**16)
+
 
         mycmap = plt.cm.plasma
         if self.image is None:
@@ -363,9 +365,12 @@ class InstrumentViewer(object):
                     vmax=None,
                     interpolation="none")
         else:
+            shp = img.shape
+
             self.image.set_data(img)
             self.image.set_clim(vmax=np.amax(img))
             self._figure.canvas.draw()
+            self.image.set_extent([0, shp[1], shp[0], 0]) # l, r, b, t
         self._axes.format_coord = self.format_coord
 
     def format_coord(self, j, i):
@@ -378,5 +383,5 @@ class InstrumentViewer(object):
         eta = ang_data[:, 1]
         dsp = 0.5 *self. planeData.wavelength / np.sin(0.5*tth)
         hkl = str(self.planeData.getHKLs(asStr=True, allHKLs=True, thisTTh=tth))
-        return "x=%.2f, y=%.2f, d=%.3f tth=%.2f eta=%.2f HKLs=%s" \
+        return "x=%.2f, y=%.2f, d=%.3f\ntth=%.2f eta=%.2f HKLs=%s" \
           % (xy_data[0, 0], xy_data[0, 1], dsp, np.degrees(tth), np.degrees(eta), hkl)

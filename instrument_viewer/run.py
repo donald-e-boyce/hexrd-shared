@@ -24,6 +24,12 @@ def load_instrument(yml):
         icfg = yaml.load(f)
     return instrument.HEDMInstrument(instrument_config=icfg)
 
+# options
+def load_options(yml):
+    with file(yml, 'r') as f:
+        icfg = yaml.load(f)
+    pass
+
 if __name__ == '__main__':
     #
     #  Run viewer
