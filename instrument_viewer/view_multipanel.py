@@ -6,7 +6,7 @@ from matplotlib.widgets import Slider, Button, RadioButtons
 
 from hexrd.gridutil import cellIndices
 from hexrd import imageseries
-from make_pd_patch import generate_tth_eta as polar_view
+from make_pd_patch import PolarView
 
 from skimage import io
 from skimage import transform as tf
@@ -254,7 +254,7 @@ class InstrumentViewer(object):
     # ========== Drawing
     def draw_polar(self):
         """show polar view of rings"""
-        pv = polar_view(self.planeData, self.instr)
+        pv = PolarView(self.planeData, self.instr)
         wimg = pv.warp_image(self.image_dict)
         self._axes.set_title("Instrument")
         self.plot_dplane(warped=wimg)
@@ -288,7 +288,7 @@ class InstrumentViewer(object):
                 self.planeData, delta_eta=1)
             if self.polar_mode:
                 colorspec = 'c-'
-                pv = polar_view(self.planeData, self.instr)
+                pv = PolarView(self.planeData, self.instr)
                 ringtth = [a[0,0] for a in ring_angs]
                 rings2plot = []
                 for tth in ringtth:

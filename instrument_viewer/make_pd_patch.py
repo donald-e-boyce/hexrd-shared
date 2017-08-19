@@ -4,8 +4,8 @@ from hexrd.xrd.transforms_CAPI import \
      anglesToGVec, \
      gvecToDetectorXY
 
-class generate_tth_eta(object):
-    """
+class PolarView(object):
+    """Create (two-theta, eta) plot of detectors
     """
     def __init__(self, plane_data, instrument,
                  eta_min=0., eta_max=360.,
