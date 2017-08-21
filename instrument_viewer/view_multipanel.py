@@ -18,11 +18,12 @@ from display_plane import DisplayPlane
 
 class InstrumentViewer(object):
 
-    def __init__(self, instr, ims, planeData):
+    def __init__(self, instr, ims, planeData, opts):
         self.planeData = planeData
         self.instr = instr
         self._load_panels()
         self._load_images(ims)
+        self._load_opts(opts)
         self.dplane = DisplayPlane()
         self.pixel_size = 0.5
         self._make_dpanel()
@@ -42,6 +43,11 @@ class InstrumentViewer(object):
         plt.show()
 
     # ========== Set up
+    def _load_opts(self, d):
+        pview = d['polarview']
+        self.opts = d
+        self.pv_pixel_size = (pview['tth-pixel-size'], pview['eta-pixel-size'])
+
     def _load_panels(self):
         self.panel_ids = self.instr._detectors.keys()
         self.panels = self.instr._detectors.values()
@@ -254,7 +260,7 @@ class InstrumentViewer(object):
     # ========== Drawing
     def draw_polar(self):
         """show polar view of rings"""
-        pv = PolarView(self.planeData, self.instr)
+        pv = PolarView(self.planeData, self.instr, pixel_size=self.pv_pixel_size)
         wimg = pv.warp_image(self.image_dict)
         self._axes.set_title("Instrument")
         self.plot_dplane(warped=wimg)
@@ -288,7 +294,7 @@ class InstrumentViewer(object):
                 self.planeData, delta_eta=1)
             if self.polar_mode:
                 colorspec = 'c-'
-                pv = PolarView(self.planeData, self.instr)
+                pv = PolarView(self.planeData, self.instr, pixel_size=self.pv_pixel_size)
                 ringtth = [a[0,0] for a in ring_angs]
                 rings2plot = []
                 for tth in ringtth:
@@ -358,7 +364,7 @@ class InstrumentViewer(object):
             #img = equalize_adapthist(warped/np.amax(warped), clip_limit=0.5, nbins=2**16)
 
 
-        mycmap = plt.cm.plasma
+        mycmap = plt.cm.bone
         if self.image is None:
             self.image = self._axes.imshow(
                     img, cmap=mycmap,
