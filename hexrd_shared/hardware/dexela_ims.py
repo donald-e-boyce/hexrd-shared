@@ -1,5 +1,7 @@
 """Example of imageseries subclass for Dexela images"""
 
+import numpy as np
+
 from hexrd.imageseries.process import ProcessedImageSeries
 
 class ProcessedDexelaIMS(ProcessedImageSeries):
@@ -7,11 +9,11 @@ class ProcessedDexelaIMS(ProcessedImageSeries):
     PIXFIX = 'pixfix'
 
     def __init__(self, imser, oplist, **kwargs):
-        super(ProcessedImageSeries, self).__init__(imser, oplist, **kwargs)
+        super(ProcessedDexelaIMS, self).__init__(imser, oplist, **kwargs)
         self.addop(self.PIXFIX, self._pixfix)
 
         # You could automatically apply the pixfix if you want
-        self.oplist = [(self.PIXFIX, None)] + self.oplist
+        self._oplist = [(self.PIXFIX, None)] + self.oplist
 
     def _pixfix(self, img, ddummy):
         pimg=img
