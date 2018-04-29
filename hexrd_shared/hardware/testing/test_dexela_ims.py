@@ -53,3 +53,13 @@ class TestDexelaIMS(unittest.TestCase):
         dims_rc = dexela_ims.ProcessedDexelaIMS(ims_a, [opr, opc])
         dims_cr = dexela_ims.ProcessedDexelaIMS(ims_a, [opc, opr])
         self.assertEqual(dims_rc[0][1,1], dims_cr[0][1,1])
+
+    def test_pixfix(self):
+        # under development
+        _nfxy = (3, 4, 4)
+        a = np.ones(_nfxy)
+        self.is_a = imageseries.open(None, 'array', data=a)
+        print("\noriginal:\n", self.is_a[0])
+
+        dims = dexela_ims.ProcessedDexelaIMS(self.is_a, [('pixfix', None)])
+        print("pixfix'd:\n", dims[0])
