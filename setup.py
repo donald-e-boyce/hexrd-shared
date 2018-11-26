@@ -4,7 +4,7 @@ import sys
 from setuptools import find_packages, setup
 
 setup(
-    name = 'microstructure',
+    name = 'hexrd_shared',
     author = 'HEXRD developers',
     description = 'works in progress related to HEXRD',
     classifiers = [
