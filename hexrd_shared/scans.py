@@ -1,6 +1,7 @@
 """Module for reading Hexrd grains.out files
 """
 import numpy as np
+from numpy.lib.npyio import NpzFile
 
 
 # Functions for converting grains.out files to npz format
@@ -52,8 +53,12 @@ def read_txt_dataset(tmpl, keys, savenpz=False):
 class ScanSet(object):
     """Class for processing grains.out files"""
     def __init__(self, scand):
-        """Instantiate with a dictionary of scans"""
-        self._scand = scand
+        """Instantiate with a mapping of scans or an npz file"""
+        if isinstance(scand, NpzFile) or isinstance(scand, dict):
+            self._scand = scand
+        else:
+            # assume it is a filename
+            self._scand = np.load(scand)
 
     def __getitem__(self, key):
         return Scan(self._scand[key])
