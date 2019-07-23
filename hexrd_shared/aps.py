@@ -35,6 +35,19 @@ class ParParser(object):
         names = [sl[ParFields.name] for sl in self.split_lines]
         return np.unique(names)
 
+    def scans(self, sample=None):
+        """names of scans matching sample if given, else all scans"""
+
+        slines = self.split_lines
+        if sample is not None:
+            slines = []
+            for sl in self.split_lines:
+                if sample in sl:
+                    slines.append(sl)
+
+        scans = [sl[ParFields.scan] for sl in slines]
+        return np.unique(scans)
+
     def imageseries(self, name, flips, panels=['ge1', 'ge2']):
         """generate imageseries from par file"""
         Pf = ParFields
