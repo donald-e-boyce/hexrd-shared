@@ -25,10 +25,10 @@ darkframes_dflt = 100
 
 def process_raw(yml_ims, threshold=10):
     raw = imageseries.open(yml_ims, 'imagefiles')
-    pims = Pims(raw, [('dark', make_dark(ims)), ('flip', 'h')])
+    pims = Pims(raw, [('dark', _make_dark(ims)), ('flip', 'h')])
 
 
-def make_dark(ims):
+def _make_dark(ims):
     """build dark"""
     return imageseries.stats.median(ims, nframes=darkframes_dflt)
 
@@ -104,10 +104,10 @@ class ParParser(object):
 
     def _imageseries(self, sample, scans, panel):
         """generate yaml for imagefiles type imageseries"""
+        scan_fname_tmpl = "%s_0%s.%s"
+        yml_name = "%s_0%s_%s.yml" % (sample, scans[0], panel)
         # use first scan number for name in yaml
-        scan_fname = "%s-0%s.%s"
-        # scan_fname = "%s_0%s.%s" % (sample, scans[0], panel)
-        files = " ".join([scan_fname % (sample, s, panel) for s in scans])
+        files = " ".join([scan_fname_tmpl % (sample, s, panel) for s in scans])
         # find omega info
 
         d = dict(
@@ -117,7 +117,9 @@ class ParParser(object):
             panel="ge1",
             meta=self._make_meta(sample, scans, panel)
         )
-        print(_imagefiles_tmpl % d)
+        with open(yml_name, "w") as f:
+            print("writing ", yml_name)
+            f.write(_imagefiles_tmpl % d)
 
     def _make_meta(self, sample, scans, panel):
         """build metadata"""
