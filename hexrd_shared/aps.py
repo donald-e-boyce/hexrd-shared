@@ -1,7 +1,11 @@
 """Parse APS .par files"""
 from collections import namedtuple
+import os
 
 import numpy as np
+
+from hexrd import imageseries
+from hexrd.imageseries.process import ProcessedImageSeries as Pims
 
 KeyIndex = namedtuple('KeyIndex', ['key', 'index'])
 _mtsY =  KeyIndex('mtsY', 24)
@@ -15,10 +19,26 @@ _scan = KeyIndex('scan', 36)
 
 _daterange = range(5) # first five fields are date
 
+
+flip_dflt = "h"
+darkframes_dflt = 100
+
+def process_raw(yml_ims, threshold=10):
+    raw = imageseries.open(yml_ims, 'imagefiles')
+    pims = Pims(raw, [('dark', make_dark(ims)), ('flip', 'h')])
+
+
+def make_dark(ims):
+    """build dark"""
+    return imageseries.stats.median(ims, nframes=darkframes_dflt)
+
+
 class ParParser(object):
 
-    def __init__(self, parfile):
+    def __init__(self, parfile, image_dir="."):
         self.parfile = parfile
+        self.image_dir = image_dir
+
         with open(parfile, 'r') as p:
             self.parlines = p.readlines()
         self.split_lines = []
@@ -77,16 +97,21 @@ class ParParser(object):
 
         return scand
 
-    def imageseries(self, sample, scans, panel):
+
+    def write_raw(self, sample, scans, panels):
+        for p in panels:
+            self._imageseries(sample, scans, p)
+
+    def _imageseries(self, sample, scans, panel):
         """generate yaml for imagefiles type imageseries"""
         # use first scan number for name in yaml
         scan_fname = "%s-0%s.%s"
-        # scan_fname = "%s-0%s.%s" % (sample, scans[0], panel)
+        # scan_fname = "%s_0%s.%s" % (sample, scans[0], panel)
         files = " ".join([scan_fname % (sample, s, panel) for s in scans])
         # find omega info
 
         d = dict(
-            dir=".",
+            dir=os.path.join(self.image_dir, panel),
             files=files,
             empty=1,
             panel="ge1",
