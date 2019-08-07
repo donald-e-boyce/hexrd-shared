@@ -77,31 +77,48 @@ class ParParser(object):
 
         return scand
 
-    def imageseries(self, name, flips, panels=['ge1', 'ge2']):
-        """generate imageseries from par file"""
-        Pf = ParFields
-        lines = self.matchlines(name)
-        files = ''
-        for l in lines:
-            flds = l.split()
-            files += '\n' + _scanfile_tmpl.format(
-                name=name, num=flds[Pf.scan], suf=panels[0])
-        print(files)
+    def imageseries(self, sample, scans, panel):
+        """generate yaml for imagefiles type imageseries"""
+        # use first scan number for name in yaml
+        scan_fname = "%s-0%s.%s"
+        # scan_fname = "%s-0%s.%s" % (sample, scans[0], panel)
+        files = " ".join([scan_fname % (sample, s, panel) for s in scans])
+        # find omega info
 
+        d = dict(
+            dir=".",
+            files=files,
+            empty=1,
+            panel="ge1",
+            meta=self._make_meta(sample, scans, panel)
+        )
+        print(_imagefiles_tmpl % d)
+
+    def _make_meta(self, sample, scans, panel):
+        """build metadata"""
+        meta = self.scan_info(sample)[scans[0]]
+        meta['panel'] = panel
+        return _meta_tmpl % meta
 
 def _rounde4(x):
     return int(np.round(1e4*float(x)))
 
-_scanfile_tmpl = "{name}_0{num}.{suf}"
-_imagefiles_tmpl = """
+# ==================== Image series yaml template
+
+_imagefiles_tmpl = r"""
 image-files:
-  directory: {image_dir}
-  files: "{image_files}"
+  directory: %(dir)s
+  files: %(files)s
 
 options:
-  empty-frames: 0
+  empty-frames: %(empty)s
   max-frames: 0
+%(meta)s
+"""
+
+_meta_tmpl = r"""
 meta:
-  panel: {panel}
-  omega: "! load-numpy-array {omega_file}"
+  panel: %(panel)s
+  ostart: %(ostart)s
+  ostop: %(ostop)s
 """
