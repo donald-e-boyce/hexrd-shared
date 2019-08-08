@@ -22,10 +22,32 @@ _daterange = range(5) # first five fields are date
 
 flip_dflt = "h"
 darkframes_dflt = 100
+save_fmt = "frame-cache"
 
-def process_raw(yml_ims, threshold=10):
-    raw = imageseries.open(yml_ims, 'imagefiles')
+def process_raw(yml_ims, threshold=10, empty=0):
+    (r,e) = os.path.splitext(yml_ims)
+    if e != ".yml":
+        raise RuntimeError("expecting a .yml extension, got " + e)
+    fcfile = r + ".npz"
+    print("frame-cache file: ", fcfile)
+
+    raw = imageseries.open(yml_ims, 'image-files')
+    meta = raw.metadata
+
+    # Find omegas
+    nf_tot = len(ims)
+    om0 = meta['ostart']
+    om1 = meta['ostop']
+    delta = float(om1 - om0)/nf_tot
+    w = imageseries.omega.OmegaWedges(nf_tot)
+    w.addwedge(om0 + empty*delta, om1, nf_tot)
+    meta['omega'] = w.omegas
+
+    print(meta)
+    return
+
     pims = Pims(raw, [('dark', _make_dark(ims)), ('flip', 'h')])
+    imageseries.save(pims, fcfile, save_fmt, threshold=threshold)
 
 
 def _make_dark(ims):
@@ -99,8 +121,7 @@ class ParParser(object):
 
 
     def write_raw(self, sample, scans, panels):
-        for p in panels:
-            self._imageseries(sample, scans, p)
+        return [self._imageseries(sample, scans, p) for p in panels]
 
     def _imageseries(self, sample, scans, panel):
         """generate yaml for imagefiles type imageseries"""
@@ -120,6 +141,8 @@ class ParParser(object):
         with open(yml_name, "w") as f:
             print("writing ", yml_name)
             f.write(_imagefiles_tmpl % d)
+
+        return yml_name
 
     def _make_meta(self, sample, scans, panel):
         """build metadata"""
