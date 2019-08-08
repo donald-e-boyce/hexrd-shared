@@ -32,10 +32,10 @@ def process_raw(yml_ims, threshold=10, empty=0):
     print("frame-cache file: ", fcfile)
 
     raw = imageseries.open(yml_ims, 'image-files')
+    nf_tot = len(raw)
     meta = raw.metadata
 
     # Find omegas
-    nf_tot = len(ims)
     om0 = meta['ostart']
     om1 = meta['ostop']
     delta = float(om1 - om0)/nf_tot
@@ -44,10 +44,12 @@ def process_raw(yml_ims, threshold=10, empty=0):
     meta['omega'] = w.omegas
 
     print(meta)
-    return
 
-    pims = Pims(raw, [('dark', _make_dark(ims)), ('flip', 'h')])
-    imageseries.save(pims, fcfile, save_fmt, threshold=threshold)
+    print("generating dark and processing ...")
+    pims = Pims(raw, [('dark', _make_dark(raw)), ('flip', 'h')])
+    imageseries.write(pims, fcfile, save_fmt,
+                      cache_file=fcfile,
+                      threshold=threshold)
 
 
 def _make_dark(ims):
