@@ -21,10 +21,18 @@ _daterange = range(5) # first five fields are date
 
 
 flip_dflt = "h"
-darkframes_dflt = 100
+darkframes_dflt = 120
 save_fmt = "frame-cache"
 
-def process_raw(yml_ims, threshold=10, empty=0):
+def process_raw_mp_init(params):
+    global paramMP
+    paramMP = params
+
+def process_raw_mp(yml_ims):
+
+    threshold = paramMP['threshold']
+    empty = paramMP['empty']
+    
     (r,e) = os.path.splitext(yml_ims)
     if e != ".yml":
         raise RuntimeError("expecting a .yml extension, got " + e)
@@ -36,9 +44,10 @@ def process_raw(yml_ims, threshold=10, empty=0):
     meta = raw.metadata
 
     # Find omegas
-    om0 = meta['ostart']
-    om1 = meta['ostop']
-    delta = float(om1 - om0)/nf_tot
+    om0 = float(meta['ostart'])
+    om1 = float(meta['ostop'])
+    delta = (om1 - om0)/float(nf_tot + empty)
+
     w = imageseries.omega.OmegaWedges(nf_tot)
     w.addwedge(om0 + empty*delta, om1, nf_tot)
     meta['omega'] = w.omegas
