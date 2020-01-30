@@ -19,6 +19,7 @@ re_eff = re.compile('effectively slew_ome')
 flip_dflt = "h"
 darkframes_dflt = 120
 save_fmt = "frame-cache"
+raw_fmt = "hdf5"
 
 class ScanTypes:
     omega = 'slew_ome'
@@ -30,8 +31,11 @@ _fields = ['id', 'type', 'ome0', 'ome1', 'steps', 'exposure']
 ScanRequest = namedtuple('ScanRequest', _fields)
 del _fields
 
-# Image Options: panels = list of strings, number from spec.log
-ImageOpts = namedtuple('ImageOpts', ['panels', 'number'])
+# Image File Options: panels = list of strings, number from spec.log
+ImageFileOpts = namedtuple('ImageFileOpts', ['panels', 'number'])
+
+# Image Series Options: panels = list of strings, number from spec.log
+ImageSeriesOpts = namedtuple('ImageSeriesOpts', ['flip', 'skip'])
 
 
 def _get_raw_dir(info):
@@ -53,6 +57,10 @@ class Parser(object):
         self._get_requests()
         self.scans = []
         self._get_scans()
+
+    @property
+    def rawdir(self):
+        return _get_raw_dir(self.runinfo)
 
     def _get_scans(self):
         """Break log file into text for each scan"""
@@ -126,17 +134,40 @@ class Parser(object):
         amsg = "Request and response lists do not have same length: %d, %d" % (nr, ne)
         assert nr == ne, amsg
 
-    def imagefiles(self, scanid, opts):
-        imfiles = []
-        imtmpl = '%(raw)s/%(scan)s/%(panel)s/%(panel)s_%(num)0.6d.h5'
+    def imagefiles_dict(self, scanid, opts):
+        imfdict = dict()
+        imtmpl = '%(raw)s/%(scan)s/ff/%(panel)s_%(num)0.6d.h5'
         raw = self.rawdir
         num = opts.number
         for p in opts.panels:
-            d = dict(raw=raw, scan=scanid, panel=p, num=num)
-            imfiles.append(imtmpl % d)
+            imfdict[p] = imtmpl % dict(raw=raw, scan=scanid, panel=p, num=num)
 
-        return imfiles
+        return imfdict
 
-    @property
-    def rawdir(self):
-        return _get_raw_dir(self.runinfo)
+    def raw_imageseries_dict(self, imf_dict):
+        ims_dict = dict()
+        for p in imf_dict:
+            ims_dict[p] = imageseries.open(imf_dict[p], raw_fmt)
+
+    def imageseries_dict(self, raw_dict, opts):
+        ims_dict = dict()
+        for p in raw_dict:
+            ims = raw_dict[p]
+            ops = [('flip', opts.flip)]
+            frames = list(range(skip, nframes))
+            pims = Pims(ims, op)
+
+    def get_omega(self, scanid, skip):
+        # Find omegas
+        req = self.effective[scanid]
+        nsteps = req.steps
+        ome0 = req.ome0
+        ome1 = req.ome1
+        delta = (ome1 - ome0)/float(nsteps)
+        ome0 += skip*delta
+
+        nf = nsteps - skip
+        w = imageseries.omega.OmegaWedges(nf)
+        w.addwedge(ome0, ome1, nf)
+
+        return w
