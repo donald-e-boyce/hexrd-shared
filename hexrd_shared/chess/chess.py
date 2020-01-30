@@ -30,6 +30,9 @@ _fields = ['id', 'type', 'ome0', 'ome1', 'steps', 'exposure']
 ScanRequest = namedtuple('ScanRequest', _fields)
 del _fields
 
+# Image Options: panels = list of strings, number from spec.log
+ImageOpts = namedtuple('ImageOpts', ['panels', 'number'])
+
 
 def _get_raw_dir(info):
     raw_tmpl = fs_root + '/%(cycle)s/%(station)s/%(user)s/%(name)s'
@@ -48,6 +51,23 @@ class Parser(object):
         self.requests = []
         self.effective = []
         self._get_requests()
+        self.scans = []
+        self._get_scans()
+
+    def _get_scans(self):
+        """Break log file into text for each scan"""
+        speclog = os.path.join(self.rawdir, 'spec.log')
+
+        with open(speclog, "r") as f:
+            scantext = []
+            for l in f:
+                if re_scan.match(l):
+                    # start new scan
+                    self.scans.append(scantext)
+                    scantext = []
+                scantext.append(l)
+            self.scans.append(scantext)
+
 
     def _get_requests(self):
         """List of available scan numbers"""
@@ -63,7 +83,6 @@ class Parser(object):
 
                     # New scan, waiting for response
                     flds = l.split()
-                    print(flds)
                     scanid = int(flds[1])
                     scantype = flds[2]
                     if scantype == ScanTypes.omega:
@@ -90,7 +109,6 @@ class Parser(object):
                 if re_eff.search(l):
                     # Got Response: assumes exposure not changed
                     flds = l.split()
-                    print(flds)
                     effreq = ScanRequest(
                         id=scanid,
                         type=flds[8],
@@ -108,7 +126,16 @@ class Parser(object):
         amsg = "Request and response lists do not have same length: %d, %d" % (nr, ne)
         assert nr == ne, amsg
 
-        return
+    def imagefiles(self, scanid, opts):
+        imfiles = []
+        imtmpl = '%(raw)s/%(scan)s/%(panel)s/%(panel)s_%(num)0.6d.h5'
+        raw = self.rawdir
+        num = opts.number
+        for p in opts.panels:
+            d = dict(raw=raw, scan=scanid, panel=p, num=num)
+            imfiles.append(imtmpl % d)
+
+        return imfiles
 
     @property
     def rawdir(self):
