@@ -147,7 +147,9 @@ class Parser(object):
     def raw_imageseries_dict(self, imf_dict):
         ims_dict = dict()
         for p in imf_dict:
-            ims_dict[p] = imageseries.open(imf_dict[p], raw_fmt)
+            ims_dict[p] = imageseries.open(imf_dict[p], raw_fmt, path='imageseries')
+
+        return ims_dict
 
     def imageseries_dict(self, raw_dict, opts):
         ims_dict = dict()
